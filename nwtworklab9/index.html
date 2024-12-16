@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просто переменные</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        table {
+            margin: 0 auto;
+            border-spacing: 10px;
+        }
+        th, td {
+            padding: 5px;
+        }
+        input[type="text"] {
+            width: 100px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Переменные из полей</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Первый операнд</th>
+                <th>Операция</th>
+                <th>Второй операнд</th>
+                <th></th>
+                <th>Результат</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" id="operand1" placeholder="Введите число"></td>
+                <td><input type="text" id="operation" placeholder="Введите операцию"></td>
+                <td><input type="text" id="operand2" placeholder="Введите число"></td>
+                <td>=</td>
+                <td><input type="text" id="result" readonly></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener("input", () => {
+            const operand1 = document.getElementById('operand1').value;
+            const operation = document.getElementById('operation').value;
+            const operand2 = document.getElementById('operand2').value;
+
+            console.log("Первый операнд:", operand1);
+            console.log("Операция:", operation);
+            console.log("Второй операнд:", operand2);
+            
+            // Формирование XML
+            let xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<Params>
+    <n1>${operand1}</n1>
+    <operation>${operation}</operation>`;
+            
+            if (operand2) {
+                xmlData += `<n2>${operand2}</n2>`;
+            }
+
+            xmlData += `</Params>`;
+
+            console.log("XML для отправки:", xmlData);
+
+            // Создание POST запроса
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    console.log("Ответ сервера:", this.responseText);
+                    myFunction(this.responseText);  // Обработка ответа сервера
+                }
+            };
+            // Открываем запрос
+            xhttp.open("POST", "http://127.0.0.1:8000/", true);
+            xhttp.setRequestHeader("Content-Type", "application/xml");
+            xhttp.send(xmlData);
+        });
+
+        function myFunction(data) {
+            // Используем DOMParser для парсинга XML
+            let parser = new DOMParser();
+            let xmlDoc = parser.parseFromString(data, "application/xml");
+            
+            // Извлекаем значение result из XML
+            let result = xmlDoc.getElementsByTagName("result")[0].childNodes[0].nodeValue;
+            console.log("Результат операции:", result);
+            
+            // Записываем значение в поле с id="result"
+            document.getElementById('result').value = result;
+        }
+    </script>
+</body>
+</html>
